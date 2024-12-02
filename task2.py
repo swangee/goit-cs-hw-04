@@ -1,4 +1,5 @@
 import sys
+import time
 import timeit
 from multiprocessing import Queue, Process
 
@@ -59,5 +60,9 @@ if __name__ == "__main__":
         'league_lore_story_5.txt',
     ]
 
-    #print(main(files, ['Demacia', 'Malzahar', 'kingdom', 'was']))
-    print(timeit.timeit(lambda: main(files, ['Demacia', 'Malzahar', 'kingdom', 'was']), number=1))
+    start = time.perf_counter()
+    for _ in range(10):  # Run the function 10 times
+        print(timeit.timeit(lambda: main(files, ['Demacia', 'Malzahar', 'kingdom', 'was']), number=1))
+    end = time.perf_counter()
+
+    print(f"Average time per run: {(end - start) / 10} seconds")
