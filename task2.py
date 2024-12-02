@@ -1,15 +1,20 @@
-import concurrent.futures
-from collections import defaultdict
+import sys
+import timeit
 from multiprocessing import Queue, Process
 
 def find_in_file(args):
     for jq, file_name, words in args:
-        with open(file_name) as file:
-            content = file.read()
+        try:
+            with open(file_name) as file:
+                content = file.read()
 
-            for word in words:
-                if word in content:
-                    jq.put((word, file_name))
+                for word in words:
+                    if word in content:
+                        jq.put((word, file_name))
+        except Exception:
+            sys.exit(1)
+
+    sys.exit(0)
 
 def chunks(files, max_workers):
     per_chunk = len(files) // max_workers
@@ -18,34 +23,32 @@ def chunks(files, max_workers):
         yield files[i:i + per_chunk]
 
 def main(files: list, words: list, max_workers = 2):
-    with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
-        result = {}
-        for word in words:
-            result[word] = set()
+    result = {}
+    for word in words:
+        result[word] = set()
 
 
-        jq = Queue()
+    jq = Queue()
 
-        args = list(chunks([(jq, file_name, words) for file_name in files], max_workers))
+    args = list(chunks([(jq, file_name, words) for file_name in files], max_workers))
 
-        processes = []
+    processes = []
 
-        for i in range(max_workers+1):
-            process = Process(target=find_in_file, args=(args[i],))
-            process.start()
-            processes.append(process)
+    for i in range(max_workers+1):
+        process = Process(target=find_in_file, args=(args[i],))
+        process.start()
+        processes.append(process)
 
-        for process in processes:
-            process.join()
+    for process in processes:
+        process.join()
 
 
-        while not jq.empty():
-            word, file_name = jq.get()
+    while not jq.empty():
+        word, file_name = jq.get()
 
-            result[word].add(file_name)
+        result[word].add(file_name)
 
-        return result
-
+    return result
 
 if __name__ == "__main__":
     files = [
@@ -56,4 +59,5 @@ if __name__ == "__main__":
         'league_lore_story_5.txt',
     ]
 
-    print(main(files, ['Demacia', 'Malzahar', 'kingdom', 'was']))
+    #print(main(files, ['Demacia', 'Malzahar', 'kingdom', 'was']))
+    print(timeit.timeit(lambda: main(files, ['Demacia', 'Malzahar', 'kingdom', 'was']), number=1))

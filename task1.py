@@ -1,4 +1,5 @@
 import concurrent.futures
+import timeit
 from collections import defaultdict
 
 
@@ -43,4 +44,4 @@ if __name__ == "__main__":
         'league_lore_story_5.txt',
     ]
 
-    print(main(files, ['Demacia', 'Malzahar', 'kingdom', 'was']))
+    print(timeit.timeit(lambda: main(files, ['Demacia', 'Malzahar', 'kingdom', 'was']), number=1))
